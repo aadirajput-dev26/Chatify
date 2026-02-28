@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import cloudinary from "../../lib/cloudinary.js";
+import cloudinary from "../lib/cloudinary.js";
 import mongoose from "mongoose";
 
 export const updateProfilePicture = async (req, res) => {
@@ -21,7 +21,7 @@ export const updateProfilePicture = async (req, res) => {
         // check if the user exists
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: "User not found" });
-    
+
         // Upload to Cloudinary – catch any upload errors
         let uploadedPic;
         try {
@@ -34,7 +34,7 @@ export const updateProfilePicture = async (req, res) => {
         // update the profile picture
         const updatedUser = await User.findByIdAndUpdate(userId, {
             profilePic: uploadedPic.secure_url
-        }, { new: true , select : "-password" });
+        }, { new: true, select: "-password" });
 
         res.status(200).json({ message: "Profile picture updated successfully", updatedUser });
     } catch (error) {

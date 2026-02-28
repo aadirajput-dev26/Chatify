@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../../lib/utils.js";
+import { generateToken } from "../lib/utils.js";
 import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 
 export const signup = async (req, res) => {
@@ -75,15 +75,15 @@ export const login = async (req, res) => {
         if (!email || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        
+
         // check if the user exists in the DB
-        const user = await User.findOne({email});
+        const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: "Invalid credentials" });
-        
+
         // check if the password is correct
         const isPasswordCorrect = await bcrypt.compare(password, user.password);
         if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid credentials" });
-        
+
         // generate token if both are correct 
         generateToken(user._id, res);
 
@@ -114,7 +114,7 @@ export const logout = async (_, res) => {
 
 export const check = async (req, res) => {
     try {
-        res.status(200).json({message : "User is Authenticated", user : req.user});
+        res.status(200).json({ message: "User is Authenticated", user: req.user });
     } catch (error) {
         console.log("Error in check controller", error);
         res.status(500).json({ message: "Something went wrong" });
