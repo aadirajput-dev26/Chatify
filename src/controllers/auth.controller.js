@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../../lib/utils.js";
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 
 export const signup = async (req, res) => {
     const { fullName, email, password } = req.body;
@@ -37,14 +38,24 @@ export const signup = async (req, res) => {
         })
 
         if (newUser) {
-            generateToken(newUser._id, res);
-            await newUser.save();
+            // generateToken(newUser._id, res);
+            // await newUser.save();
+
+            const savedUser = await newUser.save();
+            generateToken(savedUser._id, res);
+
             res.status(201).json({
                 message: "User created successfully",
                 _id: newUser._id,
                 fullName: newUser.fullName,
                 email: newUser.email
             });
+
+            try {
+                await sendWelcomeEmail(savedUser.fullName, savedUser.email);
+            } catch (error) {
+                console.log("Error sending welcome email", error);
+            }
         } else {
             res.status(400).json({ message: "Invalid user data" });
         }
@@ -54,4 +65,44 @@ export const signup = async (req, res) => {
         res.status(500).json({ message: "Something went wrong" });
     }
 
+}
+
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // check if the user exists in the DB
+        const user = await User.findOne({email});
+        if (!user) return res.status(400).json({ message: "Invalid credentials" });
+        
+        // check if the password is correct
+        const isPasswordCorrect = await bcrypt.compare(password, user.password);
+        if (!isPasswordCorrect) return res.status(400).json({ message: "Invalid credentials" });
+        
+        // generate token if both are correct 
+        generateToken(user._id, res);
+
+        res.status(200).json({
+            message: "User logged in successfully",
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email
+        });
+    } catch (error) {
+        console.log("Error in login controller", error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+}
+
+export const logout = async (_, res) => {
+    // the request body will be empty, we just need to reduce the age of the token
+    try {
+        res.cookie("jwt", "", {
+            maxAge: 0
+        });
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        console.log("Error in logout controller", error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
 }
