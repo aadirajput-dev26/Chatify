@@ -111,3 +111,12 @@ export const logout = async (_, res) => {
         res.status(500).json({ message: "Something went wrong" });
     }
 }
+
+export const check = async (req, res) => {
+    try {
+        res.status(200).json({message : "User is Authenticated", user : req.user});
+    } catch (error) {
+        console.log("Error in check controller", error);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+}
