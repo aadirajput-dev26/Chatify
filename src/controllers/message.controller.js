@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import Message from "../models/Message.js";
-import cloudinary from "./lib/cloudinary.js";
+import cloudinary from "../lib/cloudinary.js";
 import mongoose from "mongoose"; // for ObjectId validation
 
 export const getAllContacts = async (req, res) => {
